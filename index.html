@@ -2,60 +2,60 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Trava de Zoom e Escala para Mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>Controle de Estoque Deck</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Estilização da barra de rolagem para ficar mais elegante */
-        .scroll-personalizado::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        /* Trava o comportamento de arrastar a tela pra fora (efeito elástico) */
+        body {
+            overscroll-behavior-y: none;
+            overscroll-behavior-x: none;
+            touch-action: pan-y;
+            -webkit-tap-highlight-color: transparent;
         }
-        .scroll-personalizado::-webkit-scrollbar-track {
-            background: #f1f5f9; 
-            border-radius: 8px;
+
+        /* Força fontes de input para 16px no mobile para impedir zoom automático do teclado (especialmente no iOS) */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
         }
-        .scroll-personalizado::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 8px;
-        }
-        .scroll-personalizado::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
-        }
+
+        /* Estilização da barra de rolagem */
+        .scroll-personalizado::-webkit-scrollbar { width: 6px; }
+        .scroll-personalizado::-webkit-scrollbar-track { background: transparent; }
+        .scroll-personalizado::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        /* Evita que inputs de número fiquem com aquelas setinhas feias no canto */
         input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-gray-800 h-screen flex flex-col overflow-hidden">
+<body class="bg-slate-100 font-sans text-gray-800 h-[100dvh] flex flex-col overflow-hidden select-none">
 
-    <!-- Cabeçalho Principal -->
-    <header class="bg-slate-900 text-white shadow-lg py-4 px-6 z-30 relative">
+    <!-- Cabeçalho Principal Fixo -->
+    <header class="bg-slate-900 text-white shadow-md py-3 px-4 sm:px-6 z-30 shrink-0">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2 rounded-lg shadow-inner">
-                    <i class="fas fa-box-open text-xl"></i>
+                <div class="bg-blue-600 p-1.5 rounded-lg shadow-inner">
+                    <i class="fas fa-box-open text-lg"></i>
                 </div>
-                <h1 class="text-2xl font-bold tracking-wide">Estoque <span class="text-blue-400">Deck</span></h1>
+                <h1 class="text-xl font-bold tracking-wide">Estoque <span class="text-blue-400">Deck</span></h1>
             </div>
-            <span class="text-xs font-semibold bg-slate-800 border border-slate-700 py-1 px-3 rounded-full flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Online
+            <span class="text-[10px] sm:text-xs font-semibold bg-slate-800 border border-slate-700 py-1 px-2.5 rounded-full flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Online
             </span>
         </div>
     </header>
 
-    <!-- Área de Conteúdo (Agora o scroll principal fica aqui caso a tela seja muito pequena) -->
-    <main class="flex-1 overflow-y-auto p-6 scroll-personalizado">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
+    <!-- Área de Conteúdo Rolável -->
+    <main class="flex-1 overflow-y-auto overflow-x-hidden scroll-personalizado p-4 sm:p-6 pb-20">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-6">
             
-            <!-- Formulário de Entrada/Edição -->
-            <section class="bg-white p-6 rounded-xl shadow-md border border-slate-200 h-fit xl:sticky xl:top-0 z-10">
-                <h2 id="tituloFormulario" class="text-xl font-bold mb-5 text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+            <!-- Formulário -->
+            <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 h-fit xl:sticky xl:top-0 z-10 shrink-0">
+                <h2 id="tituloFormulario" class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
                     <i class="fas fa-plus-circle text-blue-600"></i> Novo Produto
                 </h2>
                 
@@ -63,96 +63,81 @@
                     <input type="hidden" id="idEdicao" value="">
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Data da Nota</label>
-                        <input type="date" id="dataNota" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Data da Nota</label>
+                        <input type="date" id="dataNota" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nome do Produto</label>
-                        <input type="text" id="nomeProduto" placeholder="Ex: Picanha Fatiada" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Produto</label>
+                        <input type="text" id="nomeProduto" placeholder="Ex: Picanha Fatiada" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Marca ou Lote</label>
-                        <input type="text" id="marcaLote" placeholder="Ex: Friboi / Lote 123" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Marca ou Lote</label>
+                        <input type="text" id="marcaLote" placeholder="Ex: Friboi / Lote 123" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Data de Validade</label>
-                        <input type="date" id="validade" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Data de Validade</label>
+                        <input type="date" id="validade" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Qtd (Kg/Un)</label>
-                            <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Qtd (Kg/Un)</label>
+                            <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Valor (Kg/Un)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Valor Unitário</label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 font-medium">R$</span>
-                                <input type="number" id="valorKg" step="0.01" min="0" placeholder="0.00" required class="w-full pl-10 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 font-bold">R$</span>
+                                <input type="number" id="valorKg" step="0.01" min="0" placeholder="0.00" required class="w-full pl-10 rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex flex-col space-y-3 pt-4 border-t border-slate-100">
-                        <button type="submit" id="btnSalvar" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all duration-300 flex justify-center items-center gap-2">
+                    <div class="flex flex-col space-y-2 pt-2">
+                        <button type="submit" id="btnSalvar" class="w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 shadow-sm">
                             <i class="fas fa-spinner fa-spin hidden" id="loadingBtn"></i>
-                            <i class="fas fa-check" id="iconBtn"></i> <span id="textoBtn">Adicionar ao Estoque</span>
+                            <i class="fas fa-check" id="iconBtn"></i> <span id="textoBtn">Salvar no Estoque</span>
                         </button>
-                        <button type="button" id="btnCancelar" onclick="cancelarEdicao()" class="hidden w-full bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-lg hover:bg-slate-300 transition-all duration-300">
+                        <button type="button" id="btnCancelar" onclick="cancelarEdicao()" class="hidden w-full bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl hover:bg-slate-300 active:scale-[0.98] transition-all duration-200">
                             Cancelar Edição
                         </button>
                     </div>
                 </form>
             </section>
 
-            <!-- Painel da Tabela de Estoque -->
-            <section class="xl:col-span-2 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col overflow-hidden h-[75vh]">
+            <!-- Painel de Produtos (Cards) -->
+            <section class="xl:col-span-2 relative">
                 
-                <div class="p-5 border-b border-slate-200 bg-white z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 px-1">
                     <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-clipboard-list text-blue-600"></i> Itens Cadastrados
+                        <i class="fas fa-clipboard-list text-blue-600"></i> Produtos Cadastrados
                     </h2>
-                    <div class="flex items-center gap-2 text-xs font-medium text-slate-600 bg-yellow-50 border border-yellow-200 px-3 py-1.5 rounded-full">
-                        <i class="fas fa-exclamation-circle text-yellow-500"></i> Alerta aos 20 dias
+                    <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 bg-yellow-100/80 border border-yellow-200 px-3 py-1.5 rounded-full">
+                        <i class="fas fa-exclamation-circle text-yellow-600"></i> Alerta aos 20 dias
                     </div>
                 </div>
                 
-                <!-- Container da Tabela com Scroll Independente -->
-                <div class="flex-1 overflow-y-auto overflow-x-auto scroll-personalizado relative bg-slate-50/50">
-                    
-                    <!-- Overlay de loading -->
-                    <div id="loadingOverlay" class="absolute inset-0 bg-white/90 flex justify-center items-center z-30 backdrop-blur-sm">
-                        <div class="text-blue-600 flex flex-col items-center">
-                            <i class="fas fa-circle-notch fa-spin text-4xl mb-3"></i>
-                            <span class="font-semibold text-slate-700">Sincronizando com Estoque Deck...</span>
-                        </div>
+                <!-- Overlay de loading -->
+                <div id="loadingOverlay" class="absolute inset-0 bg-slate-100/80 flex justify-center items-start pt-20 z-20 backdrop-blur-sm rounded-2xl hidden">
+                    <div class="bg-white px-6 py-4 rounded-2xl shadow-lg border border-slate-200 flex items-center gap-4 text-blue-600">
+                        <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+                        <span class="font-bold text-slate-700 text-sm uppercase tracking-wider">Sincronizando...</span>
                     </div>
+                </div>
 
-                    <table class="min-w-full divide-y divide-slate-200">
-                        <!-- Cabeçalho da Tabela Fixo (Sticky) -->
-                        <thead class="bg-white sticky top-0 z-20 shadow-sm ring-1 ring-black ring-opacity-5">
-                            <tr>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Produto / Detalhes</th>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estoque</th>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status de Validade</th>
-                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Financeiro</th>
-                                <th class="px-5 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaEstoque" class="bg-white divide-y divide-slate-100">
-                            <!-- JS insere aqui -->
-                        </tbody>
-                    </table>
-                    
-                    <!-- Estado Vazio -->
-                    <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-slate-400">
-                        <i class="fas fa-box-open text-6xl mb-4 text-slate-200"></i>
-                        <p class="text-lg font-medium text-slate-500">Nenhum produto cadastrado.</p>
-                        <p class="text-sm">Os produtos aparecerão aqui.</p>
-                    </div>
+                <!-- Grid de Cards (Substitui a Tabela) -->
+                <div id="gridEstoque" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cards inseridos via JS -->
+                </div>
+                
+                <!-- Estado Vazio -->
+                <div id="emptyState" class="hidden flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300 mt-2 text-slate-400">
+                    <i class="fas fa-box-open text-6xl mb-4 text-slate-200"></i>
+                    <p class="text-lg font-bold text-slate-600">Estoque vazio.</p>
+                    <p class="text-sm font-medium">Os produtos aparecerão aqui.</p>
                 </div>
             </section>
         </div>
@@ -183,7 +168,7 @@
         }
 
         function calcularStatusValidade(dataValidadeStr) {
-            if (!dataValidadeStr) return { classe: 'bg-slate-100 text-slate-600', icone: 'fa-minus', texto: 'Sem data' };
+            if (!dataValidadeStr) return { color: 'slate', icone: 'fa-minus', texto: 'Sem data' };
             const [ano, mes, dia] = dataValidadeStr.split('-');
             const dataValidade = new Date(ano, mes - 1, dia);
             dataValidade.setHours(0,0,0,0);
@@ -192,9 +177,9 @@
             const diffTempo = dataValidade - hoje;
             const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
-            if (diffDias < 0) return { classe: 'bg-red-100 text-red-700 border-red-200', icone: 'fa-times-circle', texto: 'Vencido' };
-            if (diffDias <= 20) return { classe: 'bg-yellow-100 text-yellow-700 border-yellow-300', icone: 'fa-exclamation-triangle', texto: `Vence em ${diffDias} dias` };
-            return { classe: 'bg-green-100 text-green-700 border-green-200', icone: 'fa-check-circle', texto: 'No prazo' };
+            if (diffDias < 0) return { color: 'red', icone: 'fa-times-circle', texto: 'Vencido' };
+            if (diffDias <= 20) return { color: 'yellow', icone: 'fa-exclamation-triangle', texto: `${diffDias} dias` };
+            return { color: 'emerald', icone: 'fa-check-circle', texto: 'No prazo' };
         }
 
         async function carregarEstoque() {
@@ -213,8 +198,8 @@
                     atualizarTabela();
                 }
             } catch (error) {
-                console.error("Erro ao carregar dados: ", error);
-                alert("Erro ao conectar. Verifique sua internet ou as regras do Firebase.");
+                console.error("Erro ao carregar:", error);
+                alert("Falha ao conectar. Verifique a internet.");
             } finally {
                 document.getElementById('loadingOverlay').classList.add('hidden');
             }
@@ -249,9 +234,9 @@
         }
 
         function atualizarTabela() {
-            const tbody = document.getElementById('tabelaEstoque');
+            const gridContainer = document.getElementById('gridEstoque');
             const emptyState = document.getElementById('emptyState');
-            tbody.innerHTML = '';
+            gridContainer.innerHTML = '';
 
             if (estoque.length === 0) {
                 emptyState.classList.remove('hidden');
@@ -270,50 +255,67 @@
                     const status = calcularStatusValidade(item.validade);
                     const isVazio = item.quantidade == 0;
                     
-                    const tr = document.createElement('tr');
-                    tr.className = `hover:bg-slate-50 transition-colors group 
-                        ${status.classe.includes('yellow') && !isVazio ? 'bg-yellow-50/40' : ''} 
-                        ${status.classe.includes('red') && !isVazio ? 'bg-red-50/40' : ''}`;
+                    const div = document.createElement('div');
+                    
+                    // Design do Card responsivo
+                    let bordaCor = 'border-slate-200';
+                    let bgCard = 'bg-white';
+                    
+                    if (!isVazio) {
+                        if (status.color === 'yellow') { bordaCor = 'border-yellow-300'; bgCard = 'bg-yellow-50/30'; }
+                        if (status.color === 'red') { bordaCor = 'border-red-300'; bgCard = 'bg-red-50/30'; }
+                    }
 
-                    tr.innerHTML = `
-                        <td class="px-5 py-4 whitespace-nowrap">
-                            <div class="font-bold text-slate-800 text-sm">${item.nomeProduto}</div>
-                            <div class="text-xs mt-1 ${item.marcaLote === 'A definir' ? 'text-orange-500 font-semibold' : 'text-slate-500'}">
-                                <i class="fas fa-tag mr-1 opacity-70"></i>${item.marcaLote}
+                    div.className = `${bgCard} border ${bordaCor} rounded-2xl shadow-sm p-4 flex flex-col gap-4 transition-all duration-200`;
+
+                    div.innerHTML = `
+                        <!-- Cabeçalho do Card: Nome e Botões -->
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-slate-800 text-lg leading-tight mb-1">${item.nomeProduto}</h3>
+                                <div class="text-[11px] font-bold uppercase tracking-wider ${item.marcaLote === 'A definir' ? 'text-orange-500' : 'text-slate-500'}">
+                                    <i class="fas fa-tag mr-1 opacity-70"></i>${item.marcaLote}
+                                </div>
                             </div>
-                        </td>
-                        <td class="px-5 py-4 whitespace-nowrap">
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-lg font-black ${isVazio ? 'text-red-500' : 'text-slate-700'}">${item.quantidade}</span>
-                                <span class="text-xs font-medium text-slate-500 uppercase">Kg/Un</span>
-                            </div>
-                        </td>
-                        <td class="px-5 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-slate-700 mb-1.5"><i class="far fa-calendar-alt text-slate-400 mr-1.5"></i>${formatarData(item.validade)}</div>
-                            ${!isVazio ? 
-                            `<span class="px-2.5 py-1 inline-flex text-[11px] font-bold rounded-md border ${status.classe} shadow-sm">
-                                <i class="fas ${status.icone} mr-1.5 mt-0.5"></i> ${status.texto}
-                            </span>` : 
-                            `<span class="px-2.5 py-1 inline-flex text-[11px] font-bold rounded-md border bg-slate-100 text-slate-500 border-slate-200">
-                                Aguardando uso
-                            </span>`}
-                        </td>
-                        <td class="px-5 py-4 whitespace-nowrap">
-                            <div class="text-xs text-slate-500 mb-1"><span class="font-semibold">Nota:</span> ${formatarData(item.dataNota)}</div>
-                            <div class="text-sm font-bold text-emerald-600">${formatarMoeda(item.valorKg)} <span class="text-[10px] text-slate-400 uppercase font-medium">/ Kg</span></div>
-                        </td>
-                        <td class="px-5 py-4 whitespace-nowrap text-center">
-                            <div class="flex justify-center gap-2 opacity-100 sm:opacity-40 sm:group-hover:opacity-100 transition-opacity">
-                                <button onclick="prepararEdicao('${item.id}')" class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-600 hover:text-white transition-colors border border-blue-100" title="Editar produto">
+                            <div class="flex gap-2 shrink-0">
+                                <button onclick="prepararEdicao('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors active:scale-90" title="Editar">
                                     <i class="fas fa-pen text-sm"></i>
                                 </button>
-                                <button onclick="removerItem('${item.id}')" class="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors border border-red-100" title="Excluir produto">
+                                <button onclick="removerItem('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors active:scale-90" title="Apagar">
                                     <i class="fas fa-trash text-sm"></i>
                                 </button>
                             </div>
-                        </td>
+                        </div>
+
+                        <!-- Miolo do Card: Info Principal -->
+                        <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">Em Estoque</p>
+                                <p class="text-xl font-black ${isVazio ? 'text-red-500' : 'text-slate-700'} leading-none">${item.quantidade} <span class="text-[11px] font-bold text-slate-400 uppercase">Kg/Un</span></p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">Custo</p>
+                                <p class="text-base font-bold text-emerald-600 leading-none">${formatarMoeda(item.valorKg)}</p>
+                            </div>
+                        </div>
+
+                        <!-- Rodapé do Card: Validade e Nota -->
+                        <div class="flex justify-between items-end mt-auto">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Nota: ${formatarData(item.dataNota)}</p>
+                                <p class="text-sm font-bold text-slate-700 flex items-center gap-1.5"><i class="far fa-calendar-alt text-slate-400"></i> ${formatarData(item.validade)}</p>
+                            </div>
+                            
+                            ${!isVazio ? 
+                            `<span class="px-2.5 py-1.5 inline-flex text-[11px] font-bold uppercase tracking-wider rounded-lg bg-${status.color}-100 text-${status.color}-700 border border-${status.color}-200">
+                                <i class="fas ${status.icone} mr-1.5 mt-[1px]"></i> ${status.texto}
+                            </span>` : 
+                            `<span class="px-2.5 py-1.5 inline-flex text-[11px] font-bold uppercase tracking-wider rounded-lg bg-slate-100 text-slate-500 border border-slate-200">
+                                Aguardando
+                            </span>`}
+                        </div>
                     `;
-                    tbody.appendChild(tr);
+                    gridContainer.appendChild(div);
                 });
             }
         }
@@ -328,7 +330,10 @@
             
             btnIcon.classList.add('hidden');
             btnLoading.classList.remove('hidden');
-            textoBtn.innerText = "Salvando...";
+            textoBtn.innerText = "Processando...";
+            
+            // Tira o foco do teclado no celular logo após clicar em salvar
+            document.activeElement.blur();
 
             const idEdicao = document.getElementById('idEdicao').value;
             const itemDados = {
@@ -357,9 +362,12 @@
                 }
                 this.reset();
                 await carregarEstoque();
+                
+                // Volta pro topo no celular pra pessoa ver que salvou
+                document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
             } catch (error) {
-                console.error("Erro ao salvar: ", error);
-                alert("Erro ao salvar o produto no Deck.");
+                console.error("Erro:", error);
+                alert("Erro ao salvar o produto.");
             } finally {
                 btnLoading.classList.add('hidden');
                 btnIcon.classList.remove('hidden');
@@ -382,8 +390,10 @@
             document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-pen-square text-emerald-600"></i> Editando Produto';
             document.getElementById('textoBtn').innerText = 'Salvar Alterações';
             document.getElementById('iconBtn').className = 'fas fa-save';
-            document.getElementById('btnSalvar').className = 'w-full bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-700 hover:shadow-lg transition-all duration-300 flex justify-center items-center gap-2';
+            document.getElementById('btnSalvar').className = 'w-full bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-emerald-700 active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 shadow-sm';
             document.getElementById('btnCancelar').classList.remove('hidden');
+
+            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function cancelarEdicao() {
@@ -391,14 +401,14 @@
             document.getElementById('idEdicao').value = "";
             
             document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-plus-circle text-blue-600"></i> Novo Produto';
-            document.getElementById('textoBtn').innerText = 'Adicionar ao Estoque';
+            document.getElementById('textoBtn').innerText = 'Salvar no Estoque';
             document.getElementById('iconBtn').className = 'fas fa-check';
-            document.getElementById('btnSalvar').className = 'w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all duration-300 flex justify-center items-center gap-2';
+            document.getElementById('btnSalvar').className = 'w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 shadow-sm';
             document.getElementById('btnCancelar').classList.add('hidden');
         }
 
         async function removerItem(id) {
-            if(confirm('Tem certeza que deseja apagar este item permanentemente do Estoque Deck?')) {
+            if(confirm('Tem certeza que deseja apagar este item permanentemente?')) {
                 try {
                     await fetch(`${FIREBASE_URL}/${id}.json`, { method: 'DELETE' });
                     
@@ -407,7 +417,7 @@
                     }
                     await carregarEstoque();
                 } catch (error) {
-                    console.error("Erro ao deletar: ", error);
+                    console.error("Erro ao deletar:", error);
                     alert("Erro ao remover o produto.");
                 }
             }
