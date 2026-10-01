@@ -3,116 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Estoque - Restaurante</title>
+    <title>Controle de Estoque Deck</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilização da barra de rolagem para ficar mais elegante */
+        .scroll-personalizado::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .scroll-personalizado::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 8px;
+        }
+        .scroll-personalizado::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 8px;
+        }
+        .scroll-personalizado::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        /* Evita que inputs de número fiquem com aquelas setinhas feias no canto */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800">
+<body class="bg-slate-50 font-sans text-gray-800 h-screen flex flex-col overflow-hidden">
 
-    <!-- Cabeçalho -->
-    <header class="bg-blue-800 text-white shadow-md py-4 px-6 mb-8">
+    <!-- Cabeçalho Principal -->
+    <header class="bg-slate-900 text-white shadow-lg py-4 px-6 z-30 relative">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold"><i class="fas fa-boxes mr-2"></i> Controle de Estoque</h1>
-            <span class="text-sm bg-blue-700 py-1 px-3 rounded-full">Painel Gerencial</span>
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg shadow-inner">
+                    <i class="fas fa-box-open text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-wide">Estoque <span class="text-blue-400">Deck</span></h1>
+            </div>
+            <span class="text-xs font-semibold bg-slate-800 border border-slate-700 py-1 px-3 rounded-full flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Online
+            </span>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-        
-        <!-- Formulário de Entrada/Edição -->
-        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200 h-fit sticky top-6">
-            <h2 id="tituloFormulario" class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2">Nova Entrada de Produto</h2>
-            <form id="formEstoque" class="space-y-4">
+    <!-- Área de Conteúdo (Agora o scroll principal fica aqui caso a tela seja muito pequena) -->
+    <main class="flex-1 overflow-y-auto p-6 scroll-personalizado">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
+            
+            <!-- Formulário de Entrada/Edição -->
+            <section class="bg-white p-6 rounded-xl shadow-md border border-slate-200 h-fit xl:sticky xl:top-0 z-10">
+                <h2 id="tituloFormulario" class="text-xl font-bold mb-5 text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                    <i class="fas fa-plus-circle text-blue-600"></i> Novo Produto
+                </h2>
                 
-                <!-- Campo oculto para saber o ID do item no Realtime Database -->
-                <input type="hidden" id="idEdicao" value="">
+                <form id="formEstoque" class="space-y-4">
+                    <input type="hidden" id="idEdicao" value="">
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Data da Nota</label>
-                    <input type="date" id="dataNota" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nome do Produto</label>
-                    <input type="text" id="nomeProduto" placeholder="Ex: Picanha" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Marca ou Lote</label>
-                    <input type="text" id="marcaLote" placeholder="Ex: Lote 1234 / Friboi" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Data de Validade</label>
-                    <input type="date" id="validade" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Quantidade (Kg/Un)</label>
-                        <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Data da Nota</label>
+                        <input type="date" id="dataNota" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
                     </div>
+
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Valor pago (Kg/Un)</label>
-                        <div class="relative mt-1">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">R$</span>
-                            <input type="number" id="valorKg" step="0.01" min="0" placeholder="0.00" required class="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nome do Produto</label>
+                        <input type="text" id="nomeProduto" placeholder="Ex: Picanha Fatiada" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Marca ou Lote</label>
+                        <input type="text" id="marcaLote" placeholder="Ex: Friboi / Lote 123" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Data de Validade</label>
+                        <input type="date" id="validade" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Qtd (Kg/Un)</label>
+                            <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Valor (Kg/Un)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 font-medium">R$</span>
+                                <input type="number" id="valorKg" step="0.01" min="0" placeholder="0.00" required class="w-full pl-10 rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2.5 text-sm transition-colors bg-slate-50 focus:bg-white">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="flex flex-col space-y-2 mt-4">
-                    <button type="submit" id="btnSalvar" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition duration-300 shadow-sm">
-                        <i class="fas fa-spinner fa-spin hidden mr-2" id="loadingBtn"></i>
-                        <i class="fas fa-plus-circle mr-2" id="iconBtn"></i> <span id="textoBtn">Adicionar ao Estoque</span>
-                    </button>
-                    <button type="button" id="btnCancelar" onclick="cancelarEdicao()" class="hidden w-full bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300 shadow-sm">
-                        Cancelar Edição
-                    </button>
-                </div>
-            </form>
-        </section>
+                    <div class="flex flex-col space-y-3 pt-4 border-t border-slate-100">
+                        <button type="submit" id="btnSalvar" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all duration-300 flex justify-center items-center gap-2">
+                            <i class="fas fa-spinner fa-spin hidden" id="loadingBtn"></i>
+                            <i class="fas fa-check" id="iconBtn"></i> <span id="textoBtn">Adicionar ao Estoque</span>
+                        </button>
+                        <button type="button" id="btnCancelar" onclick="cancelarEdicao()" class="hidden w-full bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-lg hover:bg-slate-300 transition-all duration-300">
+                            Cancelar Edição
+                        </button>
+                    </div>
+                </form>
+            </section>
 
-        <!-- Tabela de Estoque -->
-        <section class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-            <h2 class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <span>Lista de Produtos Cadastrados</span>
-                <span class="text-sm font-normal text-gray-500 mt-2 sm:mt-0"><i class="fas fa-circle text-yellow-500"></i> Alerta de 20 dias</span>
-            </h2>
-            
-            <div class="overflow-x-auto relative">
-                <!-- Overlay de loading -->
-                <div id="loadingOverlay" class="absolute inset-0 bg-white/80 flex justify-center items-center z-10">
-                    <div class="text-blue-600 flex flex-col items-center">
-                        <i class="fas fa-circle-notch fa-spin text-4xl mb-2"></i>
-                        <span class="font-medium">Carregando banco de dados...</span>
+            <!-- Painel da Tabela de Estoque -->
+            <section class="xl:col-span-2 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col overflow-hidden h-[75vh]">
+                
+                <div class="p-5 border-b border-slate-200 bg-white z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-clipboard-list text-blue-600"></i> Itens Cadastrados
+                    </h2>
+                    <div class="flex items-center gap-2 text-xs font-medium text-slate-600 bg-yellow-50 border border-yellow-200 px-3 py-1.5 rounded-full">
+                        <i class="fas fa-exclamation-circle text-yellow-500"></i> Alerta aos 20 dias
                     </div>
                 </div>
+                
+                <!-- Container da Tabela com Scroll Independente -->
+                <div class="flex-1 overflow-y-auto overflow-x-auto scroll-personalizado relative bg-slate-50/50">
+                    
+                    <!-- Overlay de loading -->
+                    <div id="loadingOverlay" class="absolute inset-0 bg-white/90 flex justify-center items-center z-30 backdrop-blur-sm">
+                        <div class="text-blue-600 flex flex-col items-center">
+                            <i class="fas fa-circle-notch fa-spin text-4xl mb-3"></i>
+                            <span class="font-semibold text-slate-700">Sincronizando com Estoque Deck...</span>
+                        </div>
+                    </div>
 
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto / Marca</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validade / Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota / Valor</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaEstoque" class="bg-white divide-y divide-gray-200">
-                        <!-- Itens serão inseridos aqui via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-            <div id="emptyState" class="hidden text-center py-10 text-gray-500">
-                <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
-                <p>Nenhum produto encontrado no banco de dados.</p>
-            </div>
-        </section>
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <!-- Cabeçalho da Tabela Fixo (Sticky) -->
+                        <thead class="bg-white sticky top-0 z-20 shadow-sm ring-1 ring-black ring-opacity-5">
+                            <tr>
+                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Produto / Detalhes</th>
+                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estoque</th>
+                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status de Validade</th>
+                                <th class="px-5 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Financeiro</th>
+                                <th class="px-5 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaEstoque" class="bg-white divide-y divide-slate-100">
+                            <!-- JS insere aqui -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Estado Vazio -->
+                    <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-slate-400">
+                        <i class="fas fa-box-open text-6xl mb-4 text-slate-200"></i>
+                        <p class="text-lg font-medium text-slate-500">Nenhum produto cadastrado.</p>
+                        <p class="text-sm">Os produtos aparecerão aqui.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script>
-        // URL da sua base de dados do Firebase Realtime Database
         const FIREBASE_URL = "https://estoquedeck-default-rtdb.firebaseio.com/estoque";
 
         const produtosIniciais = [
@@ -126,7 +172,6 @@
 
         let estoque = [];
 
-        // Funções utilitárias
         function formatarData(dataStr) {
             if (!dataStr) return '--/--/----';
             const [ano, mes, dia] = dataStr.split('-');
@@ -138,7 +183,7 @@
         }
 
         function calcularStatusValidade(dataValidadeStr) {
-            if (!dataValidadeStr) return { classe: 'bg-gray-100 text-gray-800', icone: 'fa-question-circle', texto: 'Sem data' };
+            if (!dataValidadeStr) return { classe: 'bg-slate-100 text-slate-600', icone: 'fa-minus', texto: 'Sem data' };
             const [ano, mes, dia] = dataValidadeStr.split('-');
             const dataValidade = new Date(ano, mes - 1, dia);
             dataValidade.setHours(0,0,0,0);
@@ -147,22 +192,19 @@
             const diffTempo = dataValidade - hoje;
             const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
-            if (diffDias < 0) return { classe: 'bg-red-100 text-red-800 border-red-200', icone: 'fa-times-circle', texto: 'Vencido' };
-            if (diffDias <= 20) return { classe: 'bg-yellow-100 text-yellow-800 border-yellow-200', icone: 'fa-exclamation-triangle', texto: `Vence em ${diffDias} dias` };
-            return { classe: 'bg-green-100 text-green-800 border-green-200', icone: 'fa-check-circle', texto: 'No prazo' };
+            if (diffDias < 0) return { classe: 'bg-red-100 text-red-700 border-red-200', icone: 'fa-times-circle', texto: 'Vencido' };
+            if (diffDias <= 20) return { classe: 'bg-yellow-100 text-yellow-700 border-yellow-300', icone: 'fa-exclamation-triangle', texto: `Vence em ${diffDias} dias` };
+            return { classe: 'bg-green-100 text-green-700 border-green-200', icone: 'fa-check-circle', texto: 'No prazo' };
         }
 
-        // Buscar dados do Realtime Database
         async function carregarEstoque() {
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            
             try {
                 const response = await fetch(`${FIREBASE_URL}.json`);
                 const data = await response.json();
                 estoque = [];
 
                 if (data === null) {
-                    // Se estiver zerado (null), popula o banco automaticamente
                     await inicializarBancoDeDados();
                 } else {
                     Object.keys(data).forEach(key => {
@@ -172,13 +214,12 @@
                 }
             } catch (error) {
                 console.error("Erro ao carregar dados: ", error);
-                alert("Erro ao conectar com o Firebase. Verifique se as Regras de Leitura/Escrita estão ativas.");
+                alert("Erro ao conectar. Verifique sua internet ou as regras do Firebase.");
             } finally {
                 document.getElementById('loadingOverlay').classList.add('hidden');
             }
         }
 
-        // Injetar os 29 produtos iniciais via PUT
         async function inicializarBancoDeDados() {
             const hoje = new Date().toISOString().split('T')[0];
             const dataValidadeGen = new Date();
@@ -188,7 +229,7 @@
             let objetoInicial = {};
 
             produtosIniciais.forEach((nome, index) => {
-                const idUnico = "item_" + index;
+                const idUnico = "item_deck_" + index;
                 objetoInicial[idUnico] = {
                     dataNota: hoje,
                     nomeProduto: nome,
@@ -204,11 +245,9 @@
                 body: JSON.stringify(objetoInicial),
                 headers: { 'Content-Type': 'application/json' }
             });
-
             await carregarEstoque();
         }
 
-        // Renderizar Tabela
         function atualizarTabela() {
             const tbody = document.getElementById('tabelaEstoque');
             const emptyState = document.getElementById('emptyState');
@@ -216,8 +255,10 @@
 
             if (estoque.length === 0) {
                 emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
             } else {
                 emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
                 
                 estoque.sort((a, b) => {
                     if (a.quantidade === 0 && b.quantidade !== 0) return -1;
@@ -227,37 +268,49 @@
 
                 estoque.forEach((item) => {
                     const status = calcularStatusValidade(item.validade);
-                    const tr = document.createElement('tr');
+                    const isVazio = item.quantidade == 0;
                     
-                    tr.className = `hover:bg-gray-50 transition ${status.classe.includes('yellow') && item.quantidade > 0 ? 'bg-yellow-50/30' : ''} ${status.classe.includes('red') && item.quantidade > 0 ? 'bg-red-50/30' : ''}`;
+                    const tr = document.createElement('tr');
+                    tr.className = `hover:bg-slate-50 transition-colors group 
+                        ${status.classe.includes('yellow') && !isVazio ? 'bg-yellow-50/40' : ''} 
+                        ${status.classe.includes('red') && !isVazio ? 'bg-red-50/40' : ''}`;
 
                     tr.innerHTML = `
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <div class="font-medium text-gray-900">${item.nomeProduto}</div>
-                            <div class="text-xs ${item.marcaLote === 'A definir' ? 'text-red-400 font-bold' : 'text-gray-500'}">Lote/Marca: ${item.marcaLote}</div>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="font-bold text-slate-800 text-sm">${item.nomeProduto}</div>
+                            <div class="text-xs mt-1 ${item.marcaLote === 'A definir' ? 'text-orange-500 font-semibold' : 'text-slate-500'}">
+                                <i class="fas fa-tag mr-1 opacity-70"></i>${item.marcaLote}
+                            </div>
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <span class="font-semibold ${item.quantidade == 0 ? 'text-red-500' : 'text-gray-700'}">${item.quantidade}</span> <span class="text-xs text-gray-500">Kg/Un</span>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-lg font-black ${isVazio ? 'text-red-500' : 'text-slate-700'}">${item.quantidade}</span>
+                                <span class="text-xs font-medium text-slate-500 uppercase">Kg/Un</span>
+                            </div>
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900 mb-1">${formatarData(item.validade)}</div>
-                            ${item.quantidade > 0 ? 
-                            `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${status.classe}">
-                                <i class="fas ${status.icone} mr-1 mt-0.5"></i> ${status.texto}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-slate-700 mb-1.5"><i class="far fa-calendar-alt text-slate-400 mr-1.5"></i>${formatarData(item.validade)}</div>
+                            ${!isVazio ? 
+                            `<span class="px-2.5 py-1 inline-flex text-[11px] font-bold rounded-md border ${status.classe} shadow-sm">
+                                <i class="fas ${status.icone} mr-1.5 mt-0.5"></i> ${status.texto}
                             </span>` : 
-                            `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border bg-gray-100 text-gray-500 border-gray-200">Aguardando info</span>`}
+                            `<span class="px-2.5 py-1 inline-flex text-[11px] font-bold rounded-md border bg-slate-100 text-slate-500 border-slate-200">
+                                Aguardando uso
+                            </span>`}
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <div class="text-xs text-gray-500">Nota: ${formatarData(item.dataNota)}</div>
-                            <div class="text-sm font-medium text-gray-900">${formatarMoeda(item.valorKg)} <span class="text-xs text-gray-500">/ Kg</span></div>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="text-xs text-slate-500 mb-1"><span class="font-semibold">Nota:</span> ${formatarData(item.dataNota)}</div>
+                            <div class="text-sm font-bold text-emerald-600">${formatarMoeda(item.valorKg)} <span class="text-[10px] text-slate-400 uppercase font-medium">/ Kg</span></div>
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                            <button onclick="prepararEdicao('${item.id}')" class="text-blue-500 hover:text-blue-700 transition" title="Editar item">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="removerItem('${item.id}')" class="text-red-500 hover:text-red-700 transition" title="Remover item">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                        <td class="px-5 py-4 whitespace-nowrap text-center">
+                            <div class="flex justify-center gap-2 opacity-100 sm:opacity-40 sm:group-hover:opacity-100 transition-opacity">
+                                <button onclick="prepararEdicao('${item.id}')" class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-600 hover:text-white transition-colors border border-blue-100" title="Editar produto">
+                                    <i class="fas fa-pen text-sm"></i>
+                                </button>
+                                <button onclick="removerItem('${item.id}')" class="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors border border-red-100" title="Excluir produto">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
+                            </div>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -265,14 +318,17 @@
             }
         }
 
-        // Form Submit (Salvar/Editar)
         document.getElementById('formEstoque').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const btnIcon = document.getElementById('iconBtn');
             const btnLoading = document.getElementById('loadingBtn');
+            const textoBtn = document.getElementById('textoBtn');
+            const textoOriginal = textoBtn.innerText;
+            
             btnIcon.classList.add('hidden');
             btnLoading.classList.remove('hidden');
+            textoBtn.innerText = "Salvando...";
 
             const idEdicao = document.getElementById('idEdicao').value;
             const itemDados = {
@@ -286,14 +342,12 @@
 
             try {
                 if (idEdicao === "") {
-                    // Novo Item (POST gera chave única automática)
                     await fetch(`${FIREBASE_URL}.json`, {
                         method: 'POST',
                         body: JSON.stringify(itemDados),
                         headers: { 'Content-Type': 'application/json' }
                     });
                 } else {
-                    // Atualizar Item (PATCH altera apenas esse ID)
                     await fetch(`${FIREBASE_URL}/${idEdicao}.json`, {
                         method: 'PATCH',
                         body: JSON.stringify(itemDados),
@@ -305,10 +359,11 @@
                 await carregarEstoque();
             } catch (error) {
                 console.error("Erro ao salvar: ", error);
-                alert("Erro ao salvar o produto.");
+                alert("Erro ao salvar o produto no Deck.");
             } finally {
                 btnLoading.classList.add('hidden');
                 btnIcon.classList.remove('hidden');
+                textoBtn.innerText = textoOriginal;
             }
         });
 
@@ -324,37 +379,32 @@
             document.getElementById('quantidade').value = item.quantidade;
             document.getElementById('valorKg').value = item.valorKg;
 
-            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-pen text-blue-600 mr-2"></i> Editando Produto';
+            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-pen-square text-emerald-600"></i> Editando Produto';
             document.getElementById('textoBtn').innerText = 'Salvar Alterações';
-            document.getElementById('iconBtn').className = 'fas fa-save mr-2';
-            document.getElementById('btnSalvar').classList.replace('bg-blue-600', 'bg-green-600');
-            document.getElementById('btnSalvar').classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+            document.getElementById('iconBtn').className = 'fas fa-save';
+            document.getElementById('btnSalvar').className = 'w-full bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-700 hover:shadow-lg transition-all duration-300 flex justify-center items-center gap-2';
             document.getElementById('btnCancelar').classList.remove('hidden');
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function cancelarEdicao() {
             document.getElementById('formEstoque').reset();
             document.getElementById('idEdicao').value = "";
             
-            document.getElementById('tituloFormulario').innerHTML = 'Nova Entrada de Produto';
+            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-plus-circle text-blue-600"></i> Novo Produto';
             document.getElementById('textoBtn').innerText = 'Adicionar ao Estoque';
-            document.getElementById('iconBtn').className = 'fas fa-plus-circle mr-2';
-            document.getElementById('btnSalvar').classList.replace('bg-green-600', 'bg-blue-600');
-            document.getElementById('btnSalvar').classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+            document.getElementById('iconBtn').className = 'fas fa-check';
+            document.getElementById('btnSalvar').className = 'w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all duration-300 flex justify-center items-center gap-2';
             document.getElementById('btnCancelar').classList.add('hidden');
         }
 
         async function removerItem(id) {
-            if(confirm('Tem certeza que deseja remover este item do banco de dados?')) {
+            if(confirm('Tem certeza que deseja apagar este item permanentemente do Estoque Deck?')) {
                 try {
                     await fetch(`${FIREBASE_URL}/${id}.json`, { method: 'DELETE' });
                     
                     if(document.getElementById('idEdicao').value === id) {
                         cancelarEdicao();
                     }
-                    
                     await carregarEstoque();
                 } catch (error) {
                     console.error("Erro ao deletar: ", error);
@@ -363,7 +413,6 @@
             }
         }
 
-        // Execução ao abrir a página
         carregarEstoque();
     </script>
 </body>
