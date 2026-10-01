@@ -2,34 +2,31 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <!-- Trava de Zoom e Escala para Mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>Controle de Estoque Deck</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Trava o comportamento de arrastar a tela pra fora (efeito elástico) */
         body {
             overscroll-behavior-y: none;
             overscroll-behavior-x: none;
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* Força fontes de input para 16px no mobile para impedir zoom automático do teclado (especialmente no iOS) */
         @media screen and (max-width: 768px) {
             input, select, textarea {
                 font-size: 16px !important;
             }
         }
-
-        /* Estilização da barra de rolagem */
         .scroll-personalizado::-webkit-scrollbar { width: 6px; }
         .scroll-personalizado::-webkit-scrollbar-track { background: transparent; }
         .scroll-personalizado::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-gray-800 h-[100dvh] flex flex-col overflow-hidden select-none">
@@ -43,11 +40,82 @@
                 </div>
                 <h1 class="text-xl font-bold tracking-wide">Estoque <span class="text-blue-400">Deck</span></h1>
             </div>
-            <span class="text-[10px] sm:text-xs font-semibold bg-slate-800 border border-slate-700 py-1 px-2.5 rounded-full flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Online
-            </span>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="abrirHistorico()" class="text-xs font-bold bg-blue-700 hover:bg-blue-600 border border-blue-500 py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm active:scale-95">
+                    <i class="fas fa-file-alt"></i> Relatório
+                </button>
+                <span id="statusConexao" class="text-[10px] sm:text-xs font-semibold bg-slate-800 border border-slate-700 py-1 px-2.5 rounded-full flex items-center gap-1.5 hidden sm:flex transition-colors">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Online
+                </span>
+            </div>
         </div>
     </header>
+
+    <!-- Modal de Histórico/Relatório -->
+    <div id="modalHistorico" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex-col justify-end sm:justify-center items-center transition-opacity backdrop-blur-sm pb-0 sm:p-4">
+        <div class="bg-slate-100 w-full sm:w-[500px] h-[85vh] sm:h-[600px] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-[slideUp_0.3s_ease-out]">
+            <div class="bg-white p-4 border-b border-slate-200 flex justify-between items-center shrink-0 shadow-sm z-10">
+                <div>
+                    <h3 class="font-black text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fas fa-history text-blue-600"></i> Relatório Completo
+                    </h3>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Entradas, Saídas e Preços</p>
+                </div>
+                <button onclick="fecharHistorico()" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors active:scale-90">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div id="listaHistorico" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scroll-personalizado relative">
+                <!-- Conteúdo injetado via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Saída/Baixa de Estoque -->
+    <div id="modalBaixa" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex-col justify-end sm:justify-center items-center transition-opacity backdrop-blur-sm pb-0 sm:p-4">
+        <div class="bg-white w-full sm:w-[400px] rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-[slideUp_0.3s_ease-out]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-black text-slate-800 text-lg flex items-center gap-2">
+                    <i class="fas fa-arrow-down text-red-500"></i> Registrar Saída
+                </h3>
+                <button onclick="fecharModalBaixa()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="formBaixa" class="p-5 space-y-4">
+                <input type="hidden" id="idProdutoBaixa">
+                <input type="hidden" id="nomeProdutoBaixa">
+                <input type="hidden" id="qtdAtualBaixa">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Produto Selecionado</label>
+                    <div id="displayNomeProduto" class="w-full bg-slate-100 text-slate-700 font-bold p-3 rounded-xl border border-slate-200"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Motivo da Saída</label>
+                    <select id="motivoBaixa" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-red-500 focus:ring-red-500 border p-3 bg-white outline-none font-medium">
+                        <option value="" disabled selected>Selecione a categoria...</option>
+                        <option value="Servido no Salão">Corte Servido no Salão</option>
+                        <option value="Perda por Limpeza">Perda por Limpeza</option>
+                        <option value="Descarte (Carcaça)">Descarte (Carcaça/Não Reutilizável)</option>
+                        <option value="Reutilização">Corte Reutilizável</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Quantidade (Kg/Un)</label>
+                    <input type="number" id="qtdBaixa" step="0.01" min="0.01" placeholder="0.00" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-red-500 focus:ring-red-500 border p-3 bg-white outline-none text-red-600 font-bold">
+                </div>
+
+                <button type="submit" id="btnSalvarBaixa" class="w-full bg-red-500 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all flex justify-center items-center gap-2 mt-2">
+                    <i class="fas fa-spinner fa-spin hidden" id="loadingBaixa"></i>
+                    <i class="fas fa-check" id="iconBaixa"></i> Confirmar Saída
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Área de Conteúdo Rolável -->
     <main class="flex-1 overflow-y-auto overflow-x-hidden scroll-personalizado p-4 sm:p-6 pb-20">
@@ -56,7 +124,7 @@
             <!-- Formulário -->
             <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 h-fit xl:sticky xl:top-0 z-10 shrink-0">
                 <h2 id="tituloFormulario" class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-                    <i class="fas fa-plus-circle text-blue-600"></i> Novo Produto
+                    <i class="fas fa-plus-circle text-blue-600"></i> Entrada de Produto
                 </h2>
                 
                 <form id="formEstoque" class="space-y-4">
@@ -64,53 +132,52 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Data da Nota</label>
-                        <input type="date" id="dataNota" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
+                        <input type="date" id="dataNota" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 bg-slate-50 focus:bg-white outline-none">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Produto</label>
-                        <input type="text" id="nomeProduto" placeholder="Ex: Picanha Fatiada" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
+                        <input type="text" id="nomeProduto" placeholder="Ex: Picanha Fatiada" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 bg-slate-50 focus:bg-white outline-none">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Marca ou Lote</label>
-                        <input type="text" id="marcaLote" placeholder="Ex: Friboi / Lote 123" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
+                        <input type="text" id="marcaLote" placeholder="Ex: Friboi / Lote 123" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 bg-slate-50 focus:bg-white outline-none">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Data de Validade</label>
-                        <input type="date" id="validade" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
+                        <input type="date" id="validade" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 bg-slate-50 focus:bg-white outline-none">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Qtd (Kg/Un)</label>
-                            <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
+                            <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00" required class="w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 bg-slate-50 focus:bg-white outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Valor Unitário</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Custo/Variação Unitária</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 font-bold">R$</span>
-                                <input type="number" id="valorKg" step="0.01" min="0" placeholder="0.00" required class="w-full pl-10 rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 transition-colors bg-slate-50 focus:bg-white outline-none">
+                                <input type="number" id="valorKg" step="0.01" min="0" placeholder="0.00" required class="w-full pl-10 rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 bg-slate-50 focus:bg-white outline-none">
                             </div>
                         </div>
                     </div>
 
                     <div class="flex flex-col space-y-2 pt-2">
-                        <button type="submit" id="btnSalvar" class="w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 shadow-sm">
+                        <button type="submit" id="btnSalvar" class="w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-sm">
                             <i class="fas fa-spinner fa-spin hidden" id="loadingBtn"></i>
-                            <i class="fas fa-check" id="iconBtn"></i> <span id="textoBtn">Salvar no Estoque</span>
+                            <i class="fas fa-check" id="iconBtn"></i> <span id="textoBtn">Registrar Entrada</span>
                         </button>
-                        <button type="button" id="btnCancelar" onclick="cancelarEdicao()" class="hidden w-full bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl hover:bg-slate-300 active:scale-[0.98] transition-all duration-200">
+                        <button type="button" id="btnCancelar" onclick="cancelarEdicao()" class="hidden w-full bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl hover:bg-slate-300 active:scale-[0.98] transition-all">
                             Cancelar Edição
                         </button>
                     </div>
                 </form>
             </section>
 
-            <!-- Painel de Produtos (Cards) -->
+            <!-- Painel de Produtos -->
             <section class="xl:col-span-2 relative">
-                
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 px-1">
                     <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                         <i class="fas fa-clipboard-list text-blue-600"></i> Produtos Cadastrados
@@ -120,15 +187,13 @@
                     </div>
                 </div>
 
-                <!-- Barra de Pesquisa Inteligente -->
                 <div class="mb-5 relative px-1">
                     <div class="absolute inset-y-0 left-1 pl-4 flex items-center pointer-events-none">
                         <i class="fas fa-search text-slate-400"></i>
                     </div>
-                    <input type="text" id="campoBusca" placeholder="Pesquisar por nome ou marca..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors bg-white outline-none text-sm font-medium text-slate-700 placeholder-slate-400">
+                    <input type="text" id="campoBusca" placeholder="Pesquisar por nome ou marca..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none text-sm font-medium text-slate-700">
                 </div>
                 
-                <!-- Overlay de loading -->
                 <div id="loadingOverlay" class="absolute inset-0 bg-slate-100/80 flex justify-center items-start pt-32 z-20 backdrop-blur-sm rounded-2xl hidden">
                     <div class="bg-white px-6 py-4 rounded-2xl shadow-lg border border-slate-200 flex items-center gap-4 text-blue-600">
                         <i class="fas fa-circle-notch fa-spin text-2xl"></i>
@@ -136,12 +201,8 @@
                     </div>
                 </div>
 
-                <!-- Grid de Cards (Substitui a Tabela) -->
-                <div id="gridEstoque" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Cards inseridos via JS -->
-                </div>
+                <div id="gridEstoque" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 
-                <!-- Estado Vazio -->
                 <div id="emptyState" class="hidden flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300 mt-2 text-slate-400">
                     <i class="fas fa-box-open text-6xl mb-4 text-slate-200"></i>
                     <p id="emptyStateTitle" class="text-lg font-bold text-slate-600">Estoque vazio.</p>
@@ -153,17 +214,27 @@
 
     <script>
         const FIREBASE_URL = "https://estoquedeck-default-rtdb.firebaseio.com/estoque";
-
-        const produtosIniciais = [
-            "Picanha", "Picanha fatiada", "Alcatra", "Noix", "Paleta Bovina", "Filé Mignon",
-            "Carneiro Carré", "Carneiro Pernil", "Carneiro Paleta",
-            "Peixe Filhote", "Espeto Filhote pré assado", "Peixe Salmao", "Peixe Abadejo", "Peixe File de Merluza", "Peixe Tilapia", "Camarão",
-            "Peito de Frango", "Frango à Passarinho",
-            "Torresmo", "Lombo suíno", "Bisteca suina", "Pé porco", "Rabo porco", "Calabresa", "Paio", "Costelinha de porco",
-            "Tempero arroz", "Tempero sal", "Cabloquinha"
-        ];
+        const FIREBASE_URL_HIST = "https://estoquedeck-default-rtdb.firebaseio.com/historico";
 
         let estoque = [];
+        let estaOnline = navigator.onLine;
+
+        // Monitor de Conexão (Modo Offline)
+        window.addEventListener('online', atualizarStatusConexao);
+        window.addEventListener('offline', atualizarStatusConexao);
+
+        function atualizarStatusConexao() {
+            estaOnline = navigator.onLine;
+            const statusBadge = document.getElementById('statusConexao');
+            if (estaOnline) {
+                statusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Online';
+                statusBadge.className = 'text-[10px] sm:text-xs font-semibold bg-slate-800 border border-slate-700 py-1 px-2.5 rounded-full flex items-center gap-1.5 hidden sm:flex';
+                carregarEstoque(); // Sincroniza ao voltar a internet
+            } else {
+                statusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Offline';
+                statusBadge.className = 'text-[10px] sm:text-xs font-semibold bg-red-900 border border-red-700 py-1 px-2.5 rounded-full flex items-center gap-1.5 hidden sm:flex text-red-100';
+            }
+        }
 
         function formatarData(dataStr) {
             if (!dataStr) return '--/--/----';
@@ -193,55 +264,32 @@
         async function carregarEstoque() {
             document.getElementById('loadingOverlay').classList.remove('hidden');
             try {
+                if (!estaOnline) throw new Error("Offline");
                 const response = await fetch(`${FIREBASE_URL}.json`);
                 const data = await response.json();
                 estoque = [];
 
-                if (data === null) {
-                    await inicializarBancoDeDados();
-                } else {
+                if (data !== null) {
                     Object.keys(data).forEach(key => {
                         estoque.push({ id: key, ...data[key] });
                     });
-                    atualizarTabela();
+                    // Salva cache local para uso offline
+                    localStorage.setItem('estoqueCache', JSON.stringify(estoque));
                 }
             } catch (error) {
-                console.error("Erro ao carregar:", error);
-                alert("Falha ao conectar. Verifique a internet.");
+                // Carrega do Cache Local se estiver Offline
+                const cache = localStorage.getItem('estoqueCache');
+                if (cache) {
+                    estoque = JSON.parse(cache);
+                } else {
+                    alert("Você está offline e não há dados salvos localmente.");
+                }
             } finally {
                 document.getElementById('loadingOverlay').classList.add('hidden');
+                atualizarTabela();
             }
         }
 
-        async function inicializarBancoDeDados() {
-            const hoje = new Date().toISOString().split('T')[0];
-            const dataValidadeGen = new Date();
-            dataValidadeGen.setDate(dataValidadeGen.getDate() + 30);
-            const validadeFormatada = dataValidadeGen.toISOString().split('T')[0];
-
-            let objetoInicial = {};
-
-            produtosIniciais.forEach((nome, index) => {
-                const idUnico = "item_deck_" + index;
-                objetoInicial[idUnico] = {
-                    dataNota: hoje,
-                    nomeProduto: nome,
-                    marcaLote: "A definir",
-                    validade: validadeFormatada,
-                    quantidade: 0,
-                    valorKg: 0
-                };
-            });
-
-            await fetch(`${FIREBASE_URL}.json`, {
-                method: 'PUT',
-                body: JSON.stringify(objetoInicial),
-                headers: { 'Content-Type': 'application/json' }
-            });
-            await carregarEstoque();
-        }
-
-        // Evento de escuta para a barra de pesquisa
         document.getElementById('campoBusca').addEventListener('input', atualizarTabela);
 
         function atualizarTabela() {
@@ -250,7 +298,6 @@
             const termoBusca = document.getElementById('campoBusca').value.toLowerCase().trim();
             gridContainer.innerHTML = '';
 
-            // Lógica de filtro baseada na pesquisa
             let estoqueFiltrado = estoque;
             if (termoBusca) {
                 estoqueFiltrado = estoque.filter(item => 
@@ -262,43 +309,23 @@
             if (estoqueFiltrado.length === 0) {
                 emptyState.classList.remove('hidden');
                 emptyState.classList.add('flex');
-                
-                if(termoBusca) {
-                    document.getElementById('emptyStateTitle').innerText = "Nenhum produto encontrado.";
-                    document.getElementById('emptyStateMsg').innerText = `Tente buscar por outro nome ou marca.`;
-                } else {
-                    document.getElementById('emptyStateTitle').innerText = "Estoque vazio.";
-                    document.getElementById('emptyStateMsg').innerText = "Os produtos aparecerão aqui.";
-                }
             } else {
                 emptyState.classList.add('hidden');
                 emptyState.classList.remove('flex');
                 
-                estoqueFiltrado.sort((a, b) => {
-                    if (a.quantidade === 0 && b.quantidade !== 0) return -1;
-                    if (a.quantidade !== 0 && b.quantidade === 0) return 1;
-                    return new Date(a.validade) - new Date(b.validade);
-                });
+                estoqueFiltrado.sort((a, b) => new Date(a.validade) - new Date(b.validade));
 
                 estoqueFiltrado.forEach((item) => {
                     const status = calcularStatusValidade(item.validade);
                     const isVazio = item.quantidade == 0;
                     
                     const div = document.createElement('div');
-                    
-                    // Design do Card responsivo
-                    let bordaCor = 'border-slate-200';
-                    let bgCard = 'bg-white';
-                    
-                    if (!isVazio) {
-                        if (status.color === 'yellow') { bordaCor = 'border-yellow-300'; bgCard = 'bg-yellow-50/30'; }
-                        if (status.color === 'red') { bordaCor = 'border-red-300'; bgCard = 'bg-red-50/30'; }
-                    }
+                    let bordaCor = isVazio ? 'border-red-300' : 'border-slate-200';
+                    let bgCard = isVazio ? 'bg-red-50/30' : 'bg-white';
 
                     div.className = `${bgCard} border ${bordaCor} rounded-2xl shadow-sm p-4 flex flex-col gap-4 transition-all duration-200`;
 
                     div.innerHTML = `
-                        <!-- Cabeçalho do Card: Nome e Botões -->
                         <div class="flex justify-between items-start gap-2">
                             <div class="flex-1">
                                 <h3 class="font-bold text-slate-800 text-lg leading-tight mb-1">${item.nomeProduto}</h3>
@@ -307,41 +334,38 @@
                                 </div>
                             </div>
                             <div class="flex gap-2 shrink-0">
-                                <button onclick="prepararEdicao('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors active:scale-90" title="Editar">
+                                <button onclick="prepararEdicao('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors" title="Editar Entrada">
                                     <i class="fas fa-pen text-sm"></i>
                                 </button>
-                                <button onclick="removerItem('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors active:scale-90" title="Apagar">
+                                <button onclick="removerItem('${item.id}')" class="w-9 h-9 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-red-500 hover:text-white transition-colors" title="Apagar Definitivo">
                                     <i class="fas fa-trash text-sm"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Miolo do Card: Info Principal -->
-                        <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 relative">
                             <div>
                                 <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">Em Estoque</p>
                                 <p class="text-xl font-black ${isVazio ? 'text-red-500' : 'text-slate-700'} leading-none">${item.quantidade} <span class="text-[11px] font-bold text-slate-400 uppercase">Kg/Un</span></p>
                             </div>
                             <div>
-                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">Custo</p>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">Valor Unitário</p>
                                 <p class="text-base font-bold text-emerald-600 leading-none">${formatarMoeda(item.valorKg)}</p>
                             </div>
+                            <!-- Botão de Dar Baixa -->
+                            <button onclick="abrirModalBaixa('${item.id}', '${item.nomeProduto}', ${item.quantidade})" class="absolute -right-2 -bottom-2 bg-red-50 border border-red-200 text-red-600 font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-lg hover:bg-red-500 hover:text-white transition-colors flex items-center gap-1 shadow-sm">
+                                <i class="fas fa-arrow-down"></i> Saída
+                            </button>
                         </div>
 
-                        <!-- Rodapé do Card: Validade e Nota -->
-                        <div class="flex justify-between items-end mt-auto">
+                        <div class="flex justify-between items-end mt-auto pt-2">
                             <div>
                                 <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Nota: ${formatarData(item.dataNota)}</p>
                                 <p class="text-sm font-bold text-slate-700 flex items-center gap-1.5"><i class="far fa-calendar-alt text-slate-400"></i> ${formatarData(item.validade)}</p>
                             </div>
-                            
-                            ${!isVazio ? 
-                            `<span class="px-2.5 py-1.5 inline-flex text-[11px] font-bold uppercase tracking-wider rounded-lg bg-${status.color}-100 text-${status.color}-700 border border-${status.color}-200">
+                            <span class="px-2.5 py-1.5 inline-flex text-[11px] font-bold uppercase tracking-wider rounded-lg bg-${status.color}-100 text-${status.color}-700 border border-${status.color}-200">
                                 <i class="fas ${status.icone} mr-1.5 mt-[1px]"></i> ${status.texto}
-                            </span>` : 
-                            `<span class="px-2.5 py-1.5 inline-flex text-[11px] font-bold uppercase tracking-wider rounded-lg bg-slate-100 text-slate-500 border border-slate-200">
-                                Aguardando
-                            </span>`}
+                            </span>
                         </div>
                     `;
                     gridContainer.appendChild(div);
@@ -349,8 +373,13 @@
             }
         }
 
+        // Lançar Nova Entrada (Com Variação de Preço)
         document.getElementById('formEstoque').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (!estaOnline) {
+                alert("Conecte-se à internet para realizar lançamentos no sistema.");
+                return;
+            }
             
             const btnIcon = document.getElementById('iconBtn');
             const btnLoading = document.getElementById('loadingBtn');
@@ -360,8 +389,6 @@
             btnIcon.classList.add('hidden');
             btnLoading.classList.remove('hidden');
             textoBtn.innerText = "Processando...";
-            
-            // Tira o foco do teclado no celular logo após clicar em salvar
             document.activeElement.blur();
 
             const idEdicao = document.getElementById('idEdicao').value;
@@ -374,28 +401,31 @@
                 valorKg: parseFloat(document.getElementById('valorKg').value)
             };
 
+            const agora = new Date();
+            const logDados = {
+                data: agora.toLocaleDateString('pt-BR'),
+                hora: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: agora.getTime(),
+                produto: itemDados.nomeProduto,
+                quantidade: itemDados.quantidade,
+                acao: "Entrada/Atualização",
+                preco: itemDados.valorKg, // Salva o preço para relatório de variação
+                tipo: "entrada"
+            };
+
             try {
                 if (idEdicao === "") {
-                    await fetch(`${FIREBASE_URL}.json`, {
-                        method: 'POST',
-                        body: JSON.stringify(itemDados),
-                        headers: { 'Content-Type': 'application/json' }
-                    });
+                    await fetch(`${FIREBASE_URL}.json`, { method: 'POST', body: JSON.stringify(itemDados) });
                 } else {
-                    await fetch(`${FIREBASE_URL}/${idEdicao}.json`, {
-                        method: 'PATCH',
-                        body: JSON.stringify(itemDados),
-                        headers: { 'Content-Type': 'application/json' }
-                    });
+                    await fetch(`${FIREBASE_URL}/${idEdicao}.json`, { method: 'PATCH', body: JSON.stringify(itemDados) });
                     cancelarEdicao();
                 }
+                await fetch(`${FIREBASE_URL_HIST}.json`, { method: 'POST', body: JSON.stringify(logDados) });
+
                 this.reset();
                 await carregarEstoque();
-                
-                // Volta pro topo no celular pra pessoa ver que salvou
                 document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
             } catch (error) {
-                console.error("Erro:", error);
                 alert("Erro ao salvar o produto.");
             } finally {
                 btnLoading.classList.add('hidden');
@@ -403,6 +433,149 @@
                 textoBtn.innerText = textoOriginal;
             }
         });
+
+        // Funções da Nova Tela de Baixa (Categorias)
+        function abrirModalBaixa(id, nome, qtdAtual) {
+            document.getElementById('idProdutoBaixa').value = id;
+            document.getElementById('nomeProdutoBaixa').value = nome;
+            document.getElementById('qtdAtualBaixa').value = qtdAtual;
+            document.getElementById('displayNomeProduto').innerText = nome;
+            document.getElementById('qtdBaixa').max = qtdAtual;
+            document.getElementById('qtdBaixa').value = "";
+            document.getElementById('motivoBaixa').value = "";
+            
+            document.getElementById('modalBaixa').classList.remove('hidden');
+            document.getElementById('modalBaixa').classList.add('flex');
+        }
+
+        function fecharModalBaixa() {
+            document.getElementById('modalBaixa').classList.add('hidden');
+            document.getElementById('modalBaixa').classList.remove('flex');
+        }
+
+        document.getElementById('formBaixa').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!estaOnline) {
+                alert("Conecte-se à internet para realizar baixas no estoque.");
+                return;
+            }
+
+            const id = document.getElementById('idProdutoBaixa').value;
+            const nome = document.getElementById('nomeProdutoBaixa').value;
+            const qtdAtual = parseFloat(document.getElementById('qtdAtualBaixa').value);
+            const qtdBaixa = parseFloat(document.getElementById('qtdBaixa').value);
+            const motivo = document.getElementById('motivoBaixa').value;
+
+            if (qtdBaixa > qtdAtual) {
+                alert("Erro: A saída não pode ser maior que o estoque atual!");
+                return;
+            }
+
+            const btnLoading = document.getElementById('loadingBaixa');
+            const iconBaixa = document.getElementById('iconBaixa');
+            btnLoading.classList.remove('hidden');
+            iconBaixa.classList.add('hidden');
+
+            const novaQtd = qtdAtual - qtdBaixa;
+            const agora = new Date();
+
+            const logDados = {
+                data: agora.toLocaleDateString('pt-BR'),
+                hora: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: agora.getTime(),
+                produto: nome,
+                quantidade: qtdBaixa,
+                acao: `Saída: ${motivo}`,
+                preco: 0,
+                tipo: "saida"
+            };
+
+            try {
+                await fetch(`${FIREBASE_URL}/${id}.json`, { 
+                    method: 'PATCH', 
+                    body: JSON.stringify({ quantidade: novaQtd }) 
+                });
+                await fetch(`${FIREBASE_URL_HIST}.json`, { 
+                    method: 'POST', 
+                    body: JSON.stringify(logDados) 
+                });
+
+                fecharModalBaixa();
+                await carregarEstoque();
+            } catch (error) {
+                alert("Erro ao registrar a saída.");
+            } finally {
+                btnLoading.classList.add('hidden');
+                iconBaixa.classList.remove('hidden');
+            }
+        });
+
+        // Relatório Completo
+        async function abrirHistorico() {
+            if (!estaOnline) {
+                alert("Conecte-se à internet para puxar os relatórios completos.");
+                return;
+            }
+
+            const modal = document.getElementById('modalHistorico');
+            const lista = document.getElementById('listaHistorico');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            lista.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20 text-blue-500">
+                    <i class="fas fa-circle-notch fa-spin text-3xl mb-3"></i>
+                    <p class="font-bold text-sm tracking-wider uppercase">Carregando Relatório...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${FIREBASE_URL_HIST}.json`);
+                const data = await response.json();
+                lista.innerHTML = '';
+
+                if (!data) {
+                    lista.innerHTML = `<p class="text-center font-bold mt-10 text-slate-400">Nenhum lançamento feito.</p>`;
+                    return;
+                }
+
+                const historicoArr = Object.keys(data).map(key => data[key]).sort((a, b) => b.timestamp - a.timestamp);
+
+                historicoArr.forEach(log => {
+                    const isSaida = log.tipo === 'saida';
+                    const corBg = isSaida ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100';
+                    const corIcone = isSaida ? 'text-red-500 fa-arrow-down' : 'text-emerald-500 fa-arrow-up';
+                    
+                    lista.innerHTML += `
+                        <div class="p-4 rounded-2xl shadow-sm border ${corBg} flex justify-between items-center gap-3">
+                            <div class="flex flex-col">
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
+                                    <i class="far fa-calendar mr-1"></i> ${log.data} <span class="mx-1">•</span> <i class="far fa-clock mr-1"></i> ${log.hora}
+                                </p>
+                                <p class="font-bold text-slate-800 text-[15px] leading-tight mb-1">${log.produto}</p>
+                                <p class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
+                                    <i class="fas ${corIcone}"></i> ${log.acao}
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <div class="bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-center shadow-sm">
+                                    <p class="text-[9px] uppercase font-black text-slate-400 mb-0.5">Qtd</p>
+                                    <p class="font-black ${isSaida ? 'text-red-600' : 'text-emerald-600'} text-base leading-none">${log.quantidade}</p>
+                                </div>
+                                ${!isSaida && log.preco ? `<p class="text-[10px] font-bold text-slate-500">R$ ${log.preco}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                lista.innerHTML = '<p class="text-center text-red-500 py-10 font-bold">Erro ao carregar o relatório.</p>';
+            }
+        }
+
+        function fecharHistorico() {
+            document.getElementById('modalHistorico').classList.add('hidden');
+            document.getElementById('modalHistorico').classList.remove('flex');
+        }
 
         function prepararEdicao(id) {
             const item = estoque.find(i => i.id === id);
@@ -416,43 +589,33 @@
             document.getElementById('quantidade').value = item.quantidade;
             document.getElementById('valorKg').value = item.valorKg;
 
-            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-pen-square text-emerald-600"></i> Editando Produto';
+            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-pen-square text-blue-600"></i> Atualizando Produto';
             document.getElementById('textoBtn').innerText = 'Salvar Alterações';
-            document.getElementById('iconBtn').className = 'fas fa-save';
-            document.getElementById('btnSalvar').className = 'w-full bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-emerald-700 active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 shadow-sm';
             document.getElementById('btnCancelar').classList.remove('hidden');
-
             document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function cancelarEdicao() {
             document.getElementById('formEstoque').reset();
             document.getElementById('idEdicao').value = "";
-            
-            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-plus-circle text-blue-600"></i> Novo Produto';
-            document.getElementById('textoBtn').innerText = 'Salvar no Estoque';
-            document.getElementById('iconBtn').className = 'fas fa-check';
-            document.getElementById('btnSalvar').className = 'w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 shadow-sm';
+            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-plus-circle text-blue-600"></i> Entrada de Produto';
+            document.getElementById('textoBtn').innerText = 'Registrar Entrada';
             document.getElementById('btnCancelar').classList.add('hidden');
         }
 
         async function removerItem(id) {
-            if(confirm('Tem certeza que deseja apagar este item permanentemente?')) {
+            if(confirm('Tem certeza que deseja apagar este item permanentemente do sistema?')) {
+                if (!estaOnline) { alert("Conecte-se à internet para apagar produtos."); return; }
                 try {
                     await fetch(`${FIREBASE_URL}/${id}.json`, { method: 'DELETE' });
-                    
-                    if(document.getElementById('idEdicao').value === id) {
-                        cancelarEdicao();
-                    }
                     await carregarEstoque();
                 } catch (error) {
-                    console.error("Erro ao deletar:", error);
                     alert("Erro ao remover o produto.");
                 }
             }
         }
 
-        carregarEstoque();
+        atualizarStatusConexao();
     </script>
 </body>
 </html>
