@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Estoque - Restaurante</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+    <!-- Cabeçalho -->
+    <header class="bg-blue-800 text-white shadow-md py-4 px-6 mb-8">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold"><i class="fas fa-boxes mr-2"></i> Controle de Estoque</h1>
+            <span class="text-sm bg-blue-700 py-1 px-3 rounded-full">Painel Gerencial</span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Formulário de Entrada -->
+        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200 h-fit">
+            <h2 class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2">Nova Entrada de Produto</h2>
+            <form id="formEstoque" class="space-y-4">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Data da Nota</label>
+                    <input type="date" id="dataNota" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nome do Produto</label>
+                    <select id="nomeProduto" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                        <option value="">Selecione um produto...</option>
+                        <optgroup label="Bovinos">
+                            <option value="Picanha">Picanha</option>
+                            <option value="Picanha fatiada">Picanha fatiada</option>
+                            <option value="Alcatra">Alcatra</option>
+                            <option value="Noix">Noix</option>
+                            <option value="Paleta Bovina">Paleta Bovina</option>
+                            <option value="Filé Mignon">Filé Mignon</option>
+                        </optgroup>
+                        <optgroup label="Carneiro">
+                            <option value="Carneiro Carré">Carneiro Carré</option>
+                            <option value="Carneiro Pernil">Carneiro Pernil</option>
+                            <option value="Carneiro Paleta">Carneiro Paleta</option>
+                        </optgroup>
+                        <optgroup label="Peixes e Frutos do Mar">
+                            <option value="Peixe Filhote">Peixe Filhote</option>
+                            <option value="Espeto Filhote pré assado">Espeto Filhote pré assado</option>
+                            <option value="Peixe Salmao">Peixe Salmao</option>
+                            <option value="Peixe Abadejo">Peixe Abadejo</option>
+                            <option value="Peixe File de Merluza">Peixe File de Merluza</option>
+                            <option value="Peixe Tilapia">Peixe Tilapia</option>
+                            <option value="Camarão">Camarão</option>
+                        </optgroup>
+                        <optgroup label="Aves">
+                            <option value="Peito de Frango">Peito de Frango</option>
+                            <option value="Frango à Passarinho">Frango à Passarinho</option>
+                        </optgroup>
+                        <optgroup label="Suínos e Embutidos">
+                            <option value="Torresmo">Torresmo</option>
+                            <option value="Lombo suíno">Lombo suíno</option>
+                            <option value="Bisteca suina">Bisteca suina</option>
+                            <option value="Pé porco">Pé porco</option>
+                            <option value="Rabo porco">Rabo porco</option>
+                            <option value="Calabresa">Calabresa</option>
+                            <option value="Paio">Paio</option>
+                            <option value="Costelinha de porco">Costelinha de porco</option>
+                        </optgroup>
+                        <optgroup label="Temperos e Outros">
+                            <option value="Tempero arroz">Tempero arroz</option>
+                            <option value="Tempero sal">Tempero sal</option>
+                            <option value="Cabloquinha">Cabloquinha</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Marca ou Lote</label>
+                    <input type="text" id="marcaLote" placeholder="Ex: Lote 1234 / Marca X" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Data de Validade</label>
+                    <input type="date" id="validade" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Quantidade (Kg/Un)</label>
+                        <input type="number" id="quantidade" step="0.01" min="0" placeholder="0.00" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Valor pago (Kg/Un)</label>
+                        <div class="relative mt-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">R$</span>
+                            <input type="number" id="valorKg" step="0.01" min="0" placeholder="0.00" required class="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition duration-300 mt-4 shadow-sm">
+                    <i class="fas fa-plus-circle mr-2"></i> Adicionar ao Estoque
+                </button>
+            </form>
+        </section>
+
+        <!-- Tabela de Estoque -->
+        <section class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h2 class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2 flex justify-between items-center">
+                <span>Itens no Estoque</span>
+                <span class="text-sm font-normal text-gray-500"><i class="fas fa-circle text-yellow-500"></i> Alerta de 20 dias</span>
+            </h2>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto / Marca</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validade / Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota / Valor</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaEstoque" class="bg-white divide-y divide-gray-200">
+                        <!-- Itens serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="hidden text-center py-10 text-gray-500">
+                <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
+                <p>Nenhum produto cadastrado no estoque.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Array para armazenar os itens do estoque
+        let estoque = JSON.parse(localStorage.getItem('estoqueRestaurante')) || [];
+
+        // Função para formatar data (YYYY-MM-DD para DD/MM/YYYY)
+        function formatarData(dataStr) {
+            const [ano, mes, dia] = dataStr.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        // Função para formatar moeda
+        function formatarMoeda(valor) {
+            return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Função para calcular status da validade (Regra dos 20 dias)
+        function calcularStatusValidade(dataValidadeStr) {
+            const [ano, mes, dia] = dataValidadeStr.split('-');
+            const dataValidade = new Date(ano, mes - 1, dia);
+            dataValidade.setHours(0,0,0,0);
+            
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0);
+
+            const diffTempo = dataValidade - hoje;
+            const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+            if (diffDias < 0) {
+                return { classe: 'bg-red-100 text-red-800 border-red-200', icone: 'fa-times-circle', texto: 'Vencido' };
+            } else if (diffDias <= 20) {
+                return { classe: 'bg-yellow-100 text-yellow-800 border-yellow-200', icone: 'fa-exclamation-triangle', texto: `Vence em ${diffDias} dias` };
+            } else {
+                return { classe: 'bg-green-100 text-green-800 border-green-200', icone: 'fa-check-circle', texto: 'No prazo' };
+            }
+        }
+
+        // Função para renderizar a tabela
+        function atualizarTabela() {
+            const tbody = document.getElementById('tabelaEstoque');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if (estoque.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                
+                // Ordenar por data de validade (mais próximos de vencer primeiro)
+                estoque.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+
+                estoque.forEach((item, index) => {
+                    const status = calcularStatusValidade(item.validade);
+                    const tr = document.createElement('tr');
+                    
+                    // Adiciona um fundo sutil se estiver perto de vencer
+                    tr.className = `hover:bg-gray-50 transition ${status.classe.includes('yellow') ? 'bg-yellow-50/30' : ''} ${status.classe.includes('red') ? 'bg-red-50/30' : ''}`;
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900">${item.nomeProduto}</div>
+                            <div class="text-xs text-gray-500">Lote/Marca: ${item.marcaLote}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="font-semibold text-gray-700">${item.quantidade}</span> <span class="text-xs text-gray-500">Kg/Un</span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900 mb-1">${formatarData(item.validade)}</div>
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${status.classe}">
+                                <i class="fas ${status.icone} mr-1 mt-0.5"></i> ${status.texto}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-xs text-gray-500">Data Nota: ${formatarData(item.dataNota)}</div>
+                            <div class="text-sm font-medium text-gray-900">${formatarMoeda(item.valorKg)} <span class="text-xs text-gray-500">/ Kg</span></div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <button onclick="removerItem(${index})" class="text-red-500 hover:text-red-700 transition" title="Remover item">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // Função para adicionar item
+        document.getElementById('formEstoque').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const novoItem = {
+                dataNota: document.getElementById('dataNota').value,
+                nomeProduto: document.getElementById('nomeProduto').value,
+                marcaLote: document.getElementById('marcaLote').value,
+                validade: document.getElementById('validade').value,
+                quantidade: document.getElementById('quantidade').value,
+                valorKg: document.getElementById('valorKg').value
+            };
+
+            estoque.push(novoItem);
+            localStorage.setItem('estoqueRestaurante', JSON.stringify(estoque));
+            
+            atualizarTabela();
+            this.reset(); // Limpa o formulário
+        });
+
+        // Função para remover item
+        function removerItem(index) {
+            if(confirm('Tem certeza que deseja remover este item do estoque?')) {
+                estoque.splice(index, 1);
+                localStorage.setItem('estoqueRestaurante', JSON.stringify(estoque));
+                atualizarTabela();
+            }
+        }
+
+        // Inicializa a tabela ao carregar a página
+        atualizarTabela();
+    </script>
+</body>
+</html>
