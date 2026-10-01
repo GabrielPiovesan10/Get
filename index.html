@@ -119,9 +119,17 @@
                         <i class="fas fa-exclamation-circle text-yellow-600"></i> Alerta aos 20 dias
                     </div>
                 </div>
+
+                <!-- Barra de Pesquisa Inteligente -->
+                <div class="mb-5 relative px-1">
+                    <div class="absolute inset-y-0 left-1 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-slate-400"></i>
+                    </div>
+                    <input type="text" id="campoBusca" placeholder="Pesquisar por nome ou marca..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors bg-white outline-none text-sm font-medium text-slate-700 placeholder-slate-400">
+                </div>
                 
                 <!-- Overlay de loading -->
-                <div id="loadingOverlay" class="absolute inset-0 bg-slate-100/80 flex justify-center items-start pt-20 z-20 backdrop-blur-sm rounded-2xl hidden">
+                <div id="loadingOverlay" class="absolute inset-0 bg-slate-100/80 flex justify-center items-start pt-32 z-20 backdrop-blur-sm rounded-2xl hidden">
                     <div class="bg-white px-6 py-4 rounded-2xl shadow-lg border border-slate-200 flex items-center gap-4 text-blue-600">
                         <i class="fas fa-circle-notch fa-spin text-2xl"></i>
                         <span class="font-bold text-slate-700 text-sm uppercase tracking-wider">Sincronizando...</span>
@@ -136,8 +144,8 @@
                 <!-- Estado Vazio -->
                 <div id="emptyState" class="hidden flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300 mt-2 text-slate-400">
                     <i class="fas fa-box-open text-6xl mb-4 text-slate-200"></i>
-                    <p class="text-lg font-bold text-slate-600">Estoque vazio.</p>
-                    <p class="text-sm font-medium">Os produtos aparecerão aqui.</p>
+                    <p id="emptyStateTitle" class="text-lg font-bold text-slate-600">Estoque vazio.</p>
+                    <p id="emptyStateMsg" class="text-sm font-medium">Os produtos aparecerão aqui.</p>
                 </div>
             </section>
         </div>
@@ -233,25 +241,46 @@
             await carregarEstoque();
         }
 
+        // Evento de escuta para a barra de pesquisa
+        document.getElementById('campoBusca').addEventListener('input', atualizarTabela);
+
         function atualizarTabela() {
             const gridContainer = document.getElementById('gridEstoque');
             const emptyState = document.getElementById('emptyState');
+            const termoBusca = document.getElementById('campoBusca').value.toLowerCase().trim();
             gridContainer.innerHTML = '';
 
-            if (estoque.length === 0) {
+            // Lógica de filtro baseada na pesquisa
+            let estoqueFiltrado = estoque;
+            if (termoBusca) {
+                estoqueFiltrado = estoque.filter(item => 
+                    item.nomeProduto.toLowerCase().includes(termoBusca) || 
+                    item.marcaLote.toLowerCase().includes(termoBusca)
+                );
+            }
+
+            if (estoqueFiltrado.length === 0) {
                 emptyState.classList.remove('hidden');
                 emptyState.classList.add('flex');
+                
+                if(termoBusca) {
+                    document.getElementById('emptyStateTitle').innerText = "Nenhum produto encontrado.";
+                    document.getElementById('emptyStateMsg').innerText = `Tente buscar por outro nome ou marca.`;
+                } else {
+                    document.getElementById('emptyStateTitle').innerText = "Estoque vazio.";
+                    document.getElementById('emptyStateMsg').innerText = "Os produtos aparecerão aqui.";
+                }
             } else {
                 emptyState.classList.add('hidden');
                 emptyState.classList.remove('flex');
                 
-                estoque.sort((a, b) => {
+                estoqueFiltrado.sort((a, b) => {
                     if (a.quantidade === 0 && b.quantidade !== 0) return -1;
                     if (a.quantidade !== 0 && b.quantidade === 0) return 1;
                     return new Date(a.validade) - new Date(b.validade);
                 });
 
-                estoque.forEach((item) => {
+                estoqueFiltrado.forEach((item) => {
                     const status = calcularStatusValidade(item.validade);
                     const isVazio = item.quantidade == 0;
                     
