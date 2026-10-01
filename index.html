@@ -17,13 +17,16 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         
-        <!-- Formulário de Entrada -->
-        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200 h-fit">
-            <h2 class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2">Nova Entrada de Produto</h2>
+        <!-- Formulário de Entrada/Edição -->
+        <section class="bg-white p-6 rounded-lg shadow-md border border-gray-200 h-fit sticky top-6">
+            <h2 id="tituloFormulario" class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2">Nova Entrada de Produto</h2>
             <form id="formEstoque" class="space-y-4">
                 
+                <!-- Campo oculto para saber o ID do item no Realtime Database -->
+                <input type="hidden" id="idEdicao" value="">
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Data da Nota</label>
                     <input type="date" id="dataNota" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
@@ -31,55 +34,12 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nome do Produto</label>
-                    <select id="nomeProduto" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
-                        <option value="">Selecione um produto...</option>
-                        <optgroup label="Bovinos">
-                            <option value="Picanha">Picanha</option>
-                            <option value="Picanha fatiada">Picanha fatiada</option>
-                            <option value="Alcatra">Alcatra</option>
-                            <option value="Noix">Noix</option>
-                            <option value="Paleta Bovina">Paleta Bovina</option>
-                            <option value="Filé Mignon">Filé Mignon</option>
-                        </optgroup>
-                        <optgroup label="Carneiro">
-                            <option value="Carneiro Carré">Carneiro Carré</option>
-                            <option value="Carneiro Pernil">Carneiro Pernil</option>
-                            <option value="Carneiro Paleta">Carneiro Paleta</option>
-                        </optgroup>
-                        <optgroup label="Peixes e Frutos do Mar">
-                            <option value="Peixe Filhote">Peixe Filhote</option>
-                            <option value="Espeto Filhote pré assado">Espeto Filhote pré assado</option>
-                            <option value="Peixe Salmao">Peixe Salmao</option>
-                            <option value="Peixe Abadejo">Peixe Abadejo</option>
-                            <option value="Peixe File de Merluza">Peixe File de Merluza</option>
-                            <option value="Peixe Tilapia">Peixe Tilapia</option>
-                            <option value="Camarão">Camarão</option>
-                        </optgroup>
-                        <optgroup label="Aves">
-                            <option value="Peito de Frango">Peito de Frango</option>
-                            <option value="Frango à Passarinho">Frango à Passarinho</option>
-                        </optgroup>
-                        <optgroup label="Suínos e Embutidos">
-                            <option value="Torresmo">Torresmo</option>
-                            <option value="Lombo suíno">Lombo suíno</option>
-                            <option value="Bisteca suina">Bisteca suina</option>
-                            <option value="Pé porco">Pé porco</option>
-                            <option value="Rabo porco">Rabo porco</option>
-                            <option value="Calabresa">Calabresa</option>
-                            <option value="Paio">Paio</option>
-                            <option value="Costelinha de porco">Costelinha de porco</option>
-                        </optgroup>
-                        <optgroup label="Temperos e Outros">
-                            <option value="Tempero arroz">Tempero arroz</option>
-                            <option value="Tempero sal">Tempero sal</option>
-                            <option value="Cabloquinha">Cabloquinha</option>
-                        </optgroup>
-                    </select>
+                    <input type="text" id="nomeProduto" placeholder="Ex: Picanha" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Marca ou Lote</label>
-                    <input type="text" id="marcaLote" placeholder="Ex: Lote 1234 / Marca X" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                    <input type="text" id="marcaLote" placeholder="Ex: Lote 1234 / Friboi" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
                 </div>
 
                 <div>
@@ -101,20 +61,34 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition duration-300 mt-4 shadow-sm">
-                    <i class="fas fa-plus-circle mr-2"></i> Adicionar ao Estoque
-                </button>
+                <div class="flex flex-col space-y-2 mt-4">
+                    <button type="submit" id="btnSalvar" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition duration-300 shadow-sm">
+                        <i class="fas fa-spinner fa-spin hidden mr-2" id="loadingBtn"></i>
+                        <i class="fas fa-plus-circle mr-2" id="iconBtn"></i> <span id="textoBtn">Adicionar ao Estoque</span>
+                    </button>
+                    <button type="button" id="btnCancelar" onclick="cancelarEdicao()" class="hidden w-full bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300 shadow-sm">
+                        Cancelar Edição
+                    </button>
+                </div>
             </form>
         </section>
 
         <!-- Tabela de Estoque -->
         <section class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-            <h2 class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2 flex justify-between items-center">
-                <span>Itens no Estoque</span>
-                <span class="text-sm font-normal text-gray-500"><i class="fas fa-circle text-yellow-500"></i> Alerta de 20 dias</span>
+            <h2 class="text-xl font-semibold mb-4 text-blue-800 border-b pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <span>Lista de Produtos Cadastrados</span>
+                <span class="text-sm font-normal text-gray-500 mt-2 sm:mt-0"><i class="fas fa-circle text-yellow-500"></i> Alerta de 20 dias</span>
             </h2>
             
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto relative">
+                <!-- Overlay de loading -->
+                <div id="loadingOverlay" class="absolute inset-0 bg-white/80 flex justify-center items-center z-10">
+                    <div class="text-blue-600 flex flex-col items-center">
+                        <i class="fas fa-circle-notch fa-spin text-4xl mb-2"></i>
+                        <span class="font-medium">Carregando banco de dados...</span>
+                    </div>
+                </div>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -122,7 +96,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validade / Status</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota / Valor</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ação</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaEstoque" class="bg-white divide-y divide-gray-200">
@@ -132,48 +106,109 @@
             </div>
             <div id="emptyState" class="hidden text-center py-10 text-gray-500">
                 <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
-                <p>Nenhum produto cadastrado no estoque.</p>
+                <p>Nenhum produto encontrado no banco de dados.</p>
             </div>
         </section>
     </main>
 
     <script>
-        // Array para armazenar os itens do estoque
-        let estoque = JSON.parse(localStorage.getItem('estoqueRestaurante')) || [];
+        // URL da sua base de dados do Firebase Realtime Database
+        const FIREBASE_URL = "https://estoquedeck-default-rtdb.firebaseio.com/estoque";
 
-        // Função para formatar data (YYYY-MM-DD para DD/MM/YYYY)
+        const produtosIniciais = [
+            "Picanha", "Picanha fatiada", "Alcatra", "Noix", "Paleta Bovina", "Filé Mignon",
+            "Carneiro Carré", "Carneiro Pernil", "Carneiro Paleta",
+            "Peixe Filhote", "Espeto Filhote pré assado", "Peixe Salmao", "Peixe Abadejo", "Peixe File de Merluza", "Peixe Tilapia", "Camarão",
+            "Peito de Frango", "Frango à Passarinho",
+            "Torresmo", "Lombo suíno", "Bisteca suina", "Pé porco", "Rabo porco", "Calabresa", "Paio", "Costelinha de porco",
+            "Tempero arroz", "Tempero sal", "Cabloquinha"
+        ];
+
+        let estoque = [];
+
+        // Funções utilitárias
         function formatarData(dataStr) {
+            if (!dataStr) return '--/--/----';
             const [ano, mes, dia] = dataStr.split('-');
             return `${dia}/${mes}/${ano}`;
         }
 
-        // Função para formatar moeda
         function formatarMoeda(valor) {
-            return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            return parseFloat(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        // Função para calcular status da validade (Regra dos 20 dias)
         function calcularStatusValidade(dataValidadeStr) {
+            if (!dataValidadeStr) return { classe: 'bg-gray-100 text-gray-800', icone: 'fa-question-circle', texto: 'Sem data' };
             const [ano, mes, dia] = dataValidadeStr.split('-');
             const dataValidade = new Date(ano, mes - 1, dia);
             dataValidade.setHours(0,0,0,0);
-            
             const hoje = new Date();
             hoje.setHours(0,0,0,0);
-
             const diffTempo = dataValidade - hoje;
             const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
-            if (diffDias < 0) {
-                return { classe: 'bg-red-100 text-red-800 border-red-200', icone: 'fa-times-circle', texto: 'Vencido' };
-            } else if (diffDias <= 20) {
-                return { classe: 'bg-yellow-100 text-yellow-800 border-yellow-200', icone: 'fa-exclamation-triangle', texto: `Vence em ${diffDias} dias` };
-            } else {
-                return { classe: 'bg-green-100 text-green-800 border-green-200', icone: 'fa-check-circle', texto: 'No prazo' };
+            if (diffDias < 0) return { classe: 'bg-red-100 text-red-800 border-red-200', icone: 'fa-times-circle', texto: 'Vencido' };
+            if (diffDias <= 20) return { classe: 'bg-yellow-100 text-yellow-800 border-yellow-200', icone: 'fa-exclamation-triangle', texto: `Vence em ${diffDias} dias` };
+            return { classe: 'bg-green-100 text-green-800 border-green-200', icone: 'fa-check-circle', texto: 'No prazo' };
+        }
+
+        // Buscar dados do Realtime Database
+        async function carregarEstoque() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${FIREBASE_URL}.json`);
+                const data = await response.json();
+                estoque = [];
+
+                if (data === null) {
+                    // Se estiver zerado (null), popula o banco automaticamente
+                    await inicializarBancoDeDados();
+                } else {
+                    Object.keys(data).forEach(key => {
+                        estoque.push({ id: key, ...data[key] });
+                    });
+                    atualizarTabela();
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados: ", error);
+                alert("Erro ao conectar com o Firebase. Verifique se as Regras de Leitura/Escrita estão ativas.");
+            } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
             }
         }
 
-        // Função para renderizar a tabela
+        // Injetar os 29 produtos iniciais via PUT
+        async function inicializarBancoDeDados() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const dataValidadeGen = new Date();
+            dataValidadeGen.setDate(dataValidadeGen.getDate() + 30);
+            const validadeFormatada = dataValidadeGen.toISOString().split('T')[0];
+
+            let objetoInicial = {};
+
+            produtosIniciais.forEach((nome, index) => {
+                const idUnico = "item_" + index;
+                objetoInicial[idUnico] = {
+                    dataNota: hoje,
+                    nomeProduto: nome,
+                    marcaLote: "A definir",
+                    validade: validadeFormatada,
+                    quantidade: 0,
+                    valorKg: 0
+                };
+            });
+
+            await fetch(`${FIREBASE_URL}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(objetoInicial),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            await carregarEstoque();
+        }
+
+        // Renderizar Tabela
         function atualizarTabela() {
             const tbody = document.getElementById('tabelaEstoque');
             const emptyState = document.getElementById('emptyState');
@@ -184,36 +219,43 @@
             } else {
                 emptyState.classList.add('hidden');
                 
-                // Ordenar por data de validade (mais próximos de vencer primeiro)
-                estoque.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+                estoque.sort((a, b) => {
+                    if (a.quantidade === 0 && b.quantidade !== 0) return -1;
+                    if (a.quantidade !== 0 && b.quantidade === 0) return 1;
+                    return new Date(a.validade) - new Date(b.validade);
+                });
 
-                estoque.forEach((item, index) => {
+                estoque.forEach((item) => {
                     const status = calcularStatusValidade(item.validade);
                     const tr = document.createElement('tr');
                     
-                    // Adiciona um fundo sutil se estiver perto de vencer
-                    tr.className = `hover:bg-gray-50 transition ${status.classe.includes('yellow') ? 'bg-yellow-50/30' : ''} ${status.classe.includes('red') ? 'bg-red-50/30' : ''}`;
+                    tr.className = `hover:bg-gray-50 transition ${status.classe.includes('yellow') && item.quantidade > 0 ? 'bg-yellow-50/30' : ''} ${status.classe.includes('red') && item.quantidade > 0 ? 'bg-red-50/30' : ''}`;
 
                     tr.innerHTML = `
                         <td class="px-4 py-4 whitespace-nowrap">
                             <div class="font-medium text-gray-900">${item.nomeProduto}</div>
-                            <div class="text-xs text-gray-500">Lote/Marca: ${item.marcaLote}</div>
+                            <div class="text-xs ${item.marcaLote === 'A definir' ? 'text-red-400 font-bold' : 'text-gray-500'}">Lote/Marca: ${item.marcaLote}</div>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
-                            <span class="font-semibold text-gray-700">${item.quantidade}</span> <span class="text-xs text-gray-500">Kg/Un</span>
+                            <span class="font-semibold ${item.quantidade == 0 ? 'text-red-500' : 'text-gray-700'}">${item.quantidade}</span> <span class="text-xs text-gray-500">Kg/Un</span>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900 mb-1">${formatarData(item.validade)}</div>
-                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${status.classe}">
+                            ${item.quantidade > 0 ? 
+                            `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${status.classe}">
                                 <i class="fas ${status.icone} mr-1 mt-0.5"></i> ${status.texto}
-                            </span>
+                            </span>` : 
+                            `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border bg-gray-100 text-gray-500 border-gray-200">Aguardando info</span>`}
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
-                            <div class="text-xs text-gray-500">Data Nota: ${formatarData(item.dataNota)}</div>
+                            <div class="text-xs text-gray-500">Nota: ${formatarData(item.dataNota)}</div>
                             <div class="text-sm font-medium text-gray-900">${formatarMoeda(item.valorKg)} <span class="text-xs text-gray-500">/ Kg</span></div>
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <button onclick="removerItem(${index})" class="text-red-500 hover:text-red-700 transition" title="Remover item">
+                        <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                            <button onclick="prepararEdicao('${item.id}')" class="text-blue-500 hover:text-blue-700 transition" title="Editar item">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="removerItem('${item.id}')" class="text-red-500 hover:text-red-700 transition" title="Remover item">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </td>
@@ -223,37 +265,106 @@
             }
         }
 
-        // Função para adicionar item
-        document.getElementById('formEstoque').addEventListener('submit', function(e) {
+        // Form Submit (Salvar/Editar)
+        document.getElementById('formEstoque').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const btnIcon = document.getElementById('iconBtn');
+            const btnLoading = document.getElementById('loadingBtn');
+            btnIcon.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
 
-            const novoItem = {
+            const idEdicao = document.getElementById('idEdicao').value;
+            const itemDados = {
                 dataNota: document.getElementById('dataNota').value,
                 nomeProduto: document.getElementById('nomeProduto').value,
                 marcaLote: document.getElementById('marcaLote').value,
                 validade: document.getElementById('validade').value,
-                quantidade: document.getElementById('quantidade').value,
-                valorKg: document.getElementById('valorKg').value
+                quantidade: parseFloat(document.getElementById('quantidade').value),
+                valorKg: parseFloat(document.getElementById('valorKg').value)
             };
 
-            estoque.push(novoItem);
-            localStorage.setItem('estoqueRestaurante', JSON.stringify(estoque));
-            
-            atualizarTabela();
-            this.reset(); // Limpa o formulário
+            try {
+                if (idEdicao === "") {
+                    // Novo Item (POST gera chave única automática)
+                    await fetch(`${FIREBASE_URL}.json`, {
+                        method: 'POST',
+                        body: JSON.stringify(itemDados),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } else {
+                    // Atualizar Item (PATCH altera apenas esse ID)
+                    await fetch(`${FIREBASE_URL}/${idEdicao}.json`, {
+                        method: 'PATCH',
+                        body: JSON.stringify(itemDados),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    cancelarEdicao();
+                }
+                this.reset();
+                await carregarEstoque();
+            } catch (error) {
+                console.error("Erro ao salvar: ", error);
+                alert("Erro ao salvar o produto.");
+            } finally {
+                btnLoading.classList.add('hidden');
+                btnIcon.classList.remove('hidden');
+            }
         });
 
-        // Função para remover item
-        function removerItem(index) {
-            if(confirm('Tem certeza que deseja remover este item do estoque?')) {
-                estoque.splice(index, 1);
-                localStorage.setItem('estoqueRestaurante', JSON.stringify(estoque));
-                atualizarTabela();
+        function prepararEdicao(id) {
+            const item = estoque.find(i => i.id === id);
+            if(!item) return;
+            
+            document.getElementById('idEdicao').value = item.id;
+            document.getElementById('dataNota').value = item.dataNota;
+            document.getElementById('nomeProduto').value = item.nomeProduto;
+            document.getElementById('marcaLote').value = item.marcaLote === 'A definir' ? '' : item.marcaLote;
+            document.getElementById('validade').value = item.validade;
+            document.getElementById('quantidade').value = item.quantidade;
+            document.getElementById('valorKg').value = item.valorKg;
+
+            document.getElementById('tituloFormulario').innerHTML = '<i class="fas fa-pen text-blue-600 mr-2"></i> Editando Produto';
+            document.getElementById('textoBtn').innerText = 'Salvar Alterações';
+            document.getElementById('iconBtn').className = 'fas fa-save mr-2';
+            document.getElementById('btnSalvar').classList.replace('bg-blue-600', 'bg-green-600');
+            document.getElementById('btnSalvar').classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+            document.getElementById('btnCancelar').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            document.getElementById('formEstoque').reset();
+            document.getElementById('idEdicao').value = "";
+            
+            document.getElementById('tituloFormulario').innerHTML = 'Nova Entrada de Produto';
+            document.getElementById('textoBtn').innerText = 'Adicionar ao Estoque';
+            document.getElementById('iconBtn').className = 'fas fa-plus-circle mr-2';
+            document.getElementById('btnSalvar').classList.replace('bg-green-600', 'bg-blue-600');
+            document.getElementById('btnSalvar').classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+            document.getElementById('btnCancelar').classList.add('hidden');
+        }
+
+        async function removerItem(id) {
+            if(confirm('Tem certeza que deseja remover este item do banco de dados?')) {
+                try {
+                    await fetch(`${FIREBASE_URL}/${id}.json`, { method: 'DELETE' });
+                    
+                    if(document.getElementById('idEdicao').value === id) {
+                        cancelarEdicao();
+                    }
+                    
+                    await carregarEstoque();
+                } catch (error) {
+                    console.error("Erro ao deletar: ", error);
+                    alert("Erro ao remover o produto.");
+                }
             }
         }
 
-        // Inicializa a tabela ao carregar a página
-        atualizarTabela();
+        // Execução ao abrir a página
+        carregarEstoque();
     </script>
 </body>
 </html>
